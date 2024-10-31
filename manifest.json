@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "JSON Formatter Extension",
+  "version": "1.0.1",
+  "description": "Format JSON content on specified websites",
+  "permissions": [
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["node_modules/json-formatter-js/dist/json-formatter.umd.js", "content.js"],
+      "css": ["node_modules/json-formatter-js/dist/json-formatter.css", "styles.css"]
+    }
+  ]
+}  
