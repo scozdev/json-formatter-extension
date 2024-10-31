@@ -1,18 +1,83 @@
-.json-formatter {
-    background-color: #f4f4f4;
-    border: 1px solid #ddd;
-    padding: 10px;
-    white-space: pre-wrap;
-    font-family: monospace;
-    font-size: 14px;
-    color: #333;
-    overflow-x: auto;
-  }
+.json-control-buttons {
+  position: sticky;
+  top: 0;
+  background: inherit;
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+  z-index: 100;
+  display: flex;
+  gap: 8px;
+}
 
-  [data-test-subj="tableDocViewRow-msg-value"] {
-    max-height: 500px;
-    overflow: auto;
-    max-width: 100%;
-    position: relative;
-    padding: 0 10px;
-  }
+.json-control-btn {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  color: #212529;
+  padding: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.json-control-btn:hover {
+  background-color: #e9ecef;
+  border-color: #ced4da;
+}
+
+.json-control-btn svg {
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
+
+.json-control-btn.copy {
+  background-color: #198754;
+  border-color: #198754;
+  color: white;
+}
+
+.json-control-btn.copy:hover {
+  background-color: #157347;
+  border-color: #146c43;
+}
+
+/* Optional: Add success state for copy button */
+.json-control-btn.copy.success {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.json-formatter-row {
+  background-color: #1e1e1e;
+}
+
+.pretty-json-btn {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  color: #212529;
+  padding: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.pretty-json-btn:hover {
+  background-color: #e9ecef;
+  border-color: #ced4da;
+}
+
+.pretty-json-btn svg {
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
