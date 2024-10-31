@@ -25,40 +25,44 @@ function createControlButtons(jsonData, formatter) {
         navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2));
     };
 
-    // Decrease Level button
-    const decreaseBtn = document.createElement('button');
-    decreaseBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" width="18" height="18">
-            <path d="M17 13l-5 5-5-5M17 7l-5 5-5-5"/>
-        </svg>
-    `;
-    decreaseBtn.className = 'json-control-btn';
-    decreaseBtn.title = "Decrease Level";
-    let currentLevel = 2; // Başlangıç seviyesi
-    decreaseBtn.onclick = () => {
-        if (currentLevel > 1) {
-            currentLevel--;
+    // Get default level from storage
+    chrome.storage.sync.get({ defaultOpenLevel: 2 }, function(settings) {
+        let currentLevel = settings.defaultOpenLevel;
+
+        // Decrease Level button
+        const decreaseBtn = document.createElement('button');
+        decreaseBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" width="18" height="18">
+                <path d="M17 13l-5 5-5-5M17 7l-5 5-5-5"/>
+            </svg>
+        `;
+        decreaseBtn.className = 'json-control-btn';
+        decreaseBtn.title = "Decrease Level";
+        decreaseBtn.onclick = () => {
+            if (currentLevel > 1) {
+                currentLevel--;
+                formatter.openAtDepth(currentLevel);
+            }
+        };
+
+        // Increase Level button
+        const increaseBtn = document.createElement('button');
+        increaseBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" width="18" height="18">
+                <path d="M7 11l5-5 5 5M7 17l5-5 5 5"/>
+            </svg>
+        `;
+        increaseBtn.className = 'json-control-btn';
+        increaseBtn.title = "Increase Level";
+        increaseBtn.onclick = () => {
+            currentLevel++;
             formatter.openAtDepth(currentLevel);
-        }
-    };
+        };
 
-    // Increase Level button
-    const increaseBtn = document.createElement('button');
-    increaseBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" width="18" height="18">
-            <path d="M7 11l5-5 5 5M7 17l5-5 5 5"/>
-        </svg>
-    `;
-    increaseBtn.className = 'json-control-btn';
-    increaseBtn.title = "Increase Level";
-    increaseBtn.onclick = () => {
-        currentLevel++;
-        formatter.openAtDepth(currentLevel);
-    };
-
-    controlContainer.appendChild(copyBtn);
-    controlContainer.appendChild(decreaseBtn);
-    controlContainer.appendChild(increaseBtn);
+        controlContainer.appendChild(copyBtn);
+        controlContainer.appendChild(decreaseBtn);
+        controlContainer.appendChild(increaseBtn);
+    });
 
     return controlContainer;
 }
@@ -79,21 +83,32 @@ function createPrettyButton(textNode) {
             const formattedContainer = document.createElement('div');
             formattedContainer.className = 'json-formatter';
             
-            const formatter = new window.JSONFormatter(jsonData, 2, {
-                hoverPreviewEnabled: true,
-                hoverPreviewArrayCount: 100,
-                hoverPreviewFieldCount: 5,
+            chrome.storage.sync.get({
+                defaultOpenLevel: 2,
                 theme: 'dark',
-                animateOpen: true,
-                animateClose: true
-            });
+                hoverPreview: true,
+                animateOpen: true
+            }, function(settings) {
+                const formatter = new window.JSONFormatter(jsonData, settings.defaultOpenLevel, {
+                    hoverPreviewEnabled: settings.hoverPreview,
+                    hoverPreviewArrayCount: 100,
+                    hoverPreviewFieldCount: 5,
+                    theme: settings.theme,
+                    animateOpen: settings.animateOpen,
+                    animateClose: settings.animateOpen
+                });
 
-            const controlButtons = createControlButtons(jsonData, formatter);
-            formattedContainer.appendChild(controlButtons);
-            formattedContainer.appendChild(formatter.render());
-            
-            textNode.parentNode.replaceChild(formattedContainer, textNode);
-            button.remove();
+                const formattedElement = formatter.render();
+                if (settings.theme === 'dark') {
+                    formattedElement.style.backgroundColor = '#1e1e1e';
+                }
+                const controlButtons = createControlButtons(jsonData, formatter);
+                formattedContainer.appendChild(controlButtons);
+                formattedContainer.appendChild(formattedElement);
+                
+                textNode.parentNode.replaceChild(formattedContainer, textNode);
+                button.remove();
+            });
             
         } catch (e) {
             console.error('JSON parse error:', e);
@@ -125,12 +140,32 @@ function findAndProcessJsonContent() {
   }
 }
 
-// Sayfa yüklendiğinde ve DOM değişikliklerinde çalıştır
-document.addEventListener('DOMContentLoaded', findAndProcessJsonContent);
+function checkIfUrlAllowed(callback) {
+  const currentHost = window.location.hostname;
+  chrome.storage.sync.get(['allowedUrls'], function(result) {
+    const allowedUrls = result.allowedUrls || [];
+    const isAllowed = allowedUrls.some(url => currentHost.includes(url));
+    callback(isAllowed);
+  });
+}
 
-// DOM değişikliklerini izle
-const observer = new MutationObserver(findAndProcessJsonContent);
-observer.observe(document.body, {
-  childList: true,
-  subtree: true
-});
+function initializeExtension() {
+  console.log('initializeExtension');
+  checkIfUrlAllowed((isAllowed) => {
+    if (isAllowed) {
+      findAndProcessJsonContent();
+      
+      const observer = new MutationObserver(findAndProcessJsonContent);
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    }
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeExtension);
+} else {
+  initializeExtension();
+}
