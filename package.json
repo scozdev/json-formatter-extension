@@ -1,0 +1,7 @@
+{
+  "name": "json-formatter-extension",
+  "version": "1.0.0",
+  "dependencies": {
+    "json-formatter-js": "^2.3.4"
+  }
+} 
