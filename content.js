@@ -10,6 +10,8 @@ function isJsonString(str) {
 function createControlButtons(jsonData, formatter) {
     const controlContainer = document.createElement('div');
     controlContainer.className = 'json-control-buttons';
+    let currentLevel = 2;
+    let currentFormatter = formatter;
 
     // Copy button
     const copyBtn = document.createElement('button');
@@ -25,44 +27,100 @@ function createControlButtons(jsonData, formatter) {
         navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2));
     };
 
-    // Get default level from storage
-    chrome.storage.sync.get({ defaultOpenLevel: 2 }, function(settings) {
-        let currentLevel = settings.defaultOpenLevel;
-
-        // Decrease Level button
-        const decreaseBtn = document.createElement('button');
-        decreaseBtn.innerHTML = `
+    // Decrease Level button
+    const createDecreaseBtn = () => {
+        const btn = document.createElement('button');
+        btn.innerHTML = `
             <svg viewBox="0 0 24 24" width="18" height="18">
                 <path d="M17 13l-5 5-5-5M17 7l-5 5-5-5"/>
             </svg>
         `;
-        decreaseBtn.className = 'json-control-btn';
-        decreaseBtn.title = "Decrease Level";
-        decreaseBtn.onclick = () => {
+        btn.className = 'json-control-btn';
+        btn.title = "Decrease Level";
+        btn.onclick = () => {
             if (currentLevel > 1) {
                 currentLevel--;
-                formatter.openAtDepth(currentLevel);
+                currentFormatter.openAtDepth(currentLevel);
             }
         };
+        return btn;
+    };
 
-        // Increase Level button
-        const increaseBtn = document.createElement('button');
-        increaseBtn.innerHTML = `
+    // Increase Level button
+    const createIncreaseBtn = () => {
+        const btn = document.createElement('button');
+        btn.innerHTML = `
             <svg viewBox="0 0 24 24" width="18" height="18">
                 <path d="M7 11l5-5 5 5M7 17l5-5 5 5"/>
             </svg>
         `;
-        increaseBtn.className = 'json-control-btn';
-        increaseBtn.title = "Increase Level";
-        increaseBtn.onclick = () => {
+        btn.className = 'json-control-btn';
+        btn.title = "Increase Level";
+        btn.onclick = () => {
             currentLevel++;
-            formatter.openAtDepth(currentLevel);
+            currentFormatter.openAtDepth(currentLevel);
+        };
+        return btn;
+    };
+
+    // Fullscreen button
+    const fullscreenBtn = document.createElement('button');
+    fullscreenBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="18" height="18">
+            <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/>
+        </svg>
+    `;
+    fullscreenBtn.className = 'json-control-btn fullscreen';
+    fullscreenBtn.title = "Fullscreen";
+    fullscreenBtn.onclick = () => {
+        const modal = document.createElement('div');
+        modal.className = 'json-modal';
+        
+        const modalContent = document.createElement('div');
+        modalContent.className = 'json-modal-content';
+        
+        const modalControls = document.createElement('div');
+        modalControls.className = 'json-control-buttons modal-controls';
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '×';
+        closeBtn.className = 'json-modal-close';
+        closeBtn.onclick = () => {
+            modal.remove();
+            currentFormatter = formatter;
+            currentFormatter.openAtDepth(currentLevel);
         };
 
-        controlContainer.appendChild(copyBtn);
-        controlContainer.appendChild(decreaseBtn);
-        controlContainer.appendChild(increaseBtn);
-    });
+        const modalFormatter = new JSONFormatter(jsonData, currentLevel, {
+            hoverPreviewEnabled: true,
+            theme: 'dark',
+            animateOpen: true,
+            animateClose: true
+        });
+        
+        currentFormatter = modalFormatter;
+        
+        const modalCopyBtn = copyBtn.cloneNode(true);
+        modalCopyBtn.onclick = () => {
+            navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2));
+        };
+
+        modalControls.appendChild(modalCopyBtn);
+        modalControls.appendChild(createDecreaseBtn());
+        modalControls.appendChild(createIncreaseBtn());
+        
+        const jsonContainer = modalFormatter.render();
+        modalContent.appendChild(closeBtn);
+        modalContent.appendChild(modalControls);
+        modalContent.appendChild(jsonContainer);
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+    };
+
+    controlContainer.appendChild(copyBtn);
+    controlContainer.appendChild(fullscreenBtn);
+    controlContainer.appendChild(createDecreaseBtn());
+    controlContainer.appendChild(createIncreaseBtn());
 
     return controlContainer;
 }
