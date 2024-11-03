@@ -52,10 +52,6 @@
   border-color: #28a745;
 }
 
-/* .json-formatter-row {
-  background-color: #1e1e1e;
-} */
-
 .pretty-json-btn {
   background-color: #f8f9fa;
   border: 1px solid #dee2e6;
@@ -149,18 +145,68 @@
     border-color: #545b62;
 }
 
-/* Dark theme desteği için */
-@media (prefers-color-scheme: dark) {
-    .json-modal-content {
-        background: #1e1e1e;
-        color: #fff;
-    }
-    
-    .json-modal-close {
-        color: #999;
-    }
-    
-    .json-modal-close:hover {
-        color: #fff;
-    }
+.json-formatter-dark.json-formatter-row {
+  background-color: #1e1e1e;
+}
+
+/* Light tema için */
+.json-modal-content.theme-light {
+    background: #ffffff;
+    color: #000000;
+    border: 1px solid #e0e0e0;
+}
+
+.theme-light .json-modal-close {
+    background: rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+.theme-light .json-modal-close:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.theme-light .json-control-buttons.modal-controls {
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.theme-light .json-control-btn {
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    color: #333;
+}
+
+.theme-light .json-control-btn:hover {
+    background: #f8f9fa;
+}
+
+/* Dark tema için */
+.json-modal-content.theme-dark {
+    background: #1e1e1e;
+    color: #ffffff;
+    border: 1px solid #333;
+}
+
+.theme-dark .json-modal-close {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.theme-dark .json-modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.theme-dark .json-control-buttons.modal-controls {
+    background: #1e1e1e;
+    border-bottom: 1px solid #333;
+}
+
+.theme-dark .json-control-btn {
+    background: #2d2d2d;
+    border: 1px solid #333;
+    color: #fff;
+}
+
+.theme-dark .json-control-btn:hover {
+    background: #3d3d3d;
 }

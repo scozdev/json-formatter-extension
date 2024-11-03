@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const urlList = document.getElementById('urlList');
   const defaultOpenLevel = document.getElementById('defaultOpenLevel');
   const theme = document.getElementById('theme');
-  const hoverPreview = document.getElementById('hoverPreview');
-  const animateOpen = document.getElementById('animateOpen');
+  const autoFormat = document.getElementById('autoFormat');
+  const formatAllSites = document.getElementById('formatAllSites');
 
   // Load all settings
   loadSettings();
@@ -13,34 +13,34 @@ document.addEventListener('DOMContentLoaded', function() {
   // Save settings when changed
   defaultOpenLevel.addEventListener('change', saveSettings);
   theme.addEventListener('change', saveSettings);
-  hoverPreview.addEventListener('change', saveSettings);
-  animateOpen.addEventListener('change', saveSettings);
+  autoFormat.addEventListener('change', saveSettings);
+  formatAllSites.addEventListener('change', saveSettings);
 
   function loadSettings() {
-    chrome.storage.sync.get({
+    browser.storage.sync.get({
       allowedUrls: [],
       defaultOpenLevel: 2,
       theme: 'dark',
-      hoverPreview: true,
-      animateOpen: true
-    }, function(settings) {
+      autoFormat: false,
+      formatAllSites: false
+    }).then(settings => {
       // Load URLs
       settings.allowedUrls.forEach(url => addUrlToList(url));
       
       // Load other settings
       defaultOpenLevel.value = settings.defaultOpenLevel;
       theme.value = settings.theme;
-      hoverPreview.checked = settings.hoverPreview;
-      animateOpen.checked = settings.animateOpen;
+      autoFormat.checked = settings.autoFormat;
+      formatAllSites.checked = settings.formatAllSites;
     });
   }
 
   function saveSettings() {
-    chrome.storage.sync.set({
+    browser.storage.sync.set({
       defaultOpenLevel: parseInt(defaultOpenLevel.value),
       theme: theme.value,
-      hoverPreview: hoverPreview.checked,
-      animateOpen: animateOpen.checked
+      autoFormat: autoFormat.checked,
+      formatAllSites: formatAllSites.checked
     });
   }
 
@@ -53,11 +53,11 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   function addUrl(url) {
-    chrome.storage.sync.get(['allowedUrls'], function(result) {
+    browser.storage.sync.get(['allowedUrls']).then(result => {
       const urls = result.allowedUrls || [];
       if (!urls.includes(url)) {
         urls.push(url);
-        chrome.storage.sync.set({ allowedUrls: urls }, function() {
+        browser.storage.sync.set({ allowedUrls: urls }).then(() => {
           addUrlToList(url);
         });
       }
@@ -81,10 +81,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function removeUrl(url) {
-    chrome.storage.sync.get(['allowedUrls'], function(result) {
+    browser.storage.sync.get(['allowedUrls']).then(result => {
       const urls = result.allowedUrls || [];
       const newUrls = urls.filter(u => u !== url);
-      chrome.storage.sync.set({ allowedUrls: newUrls });
+      browser.storage.sync.set({ allowedUrls: newUrls });
     });
   }
 }); 

@@ -1,7 +1,8 @@
 {
   "name": "json-formatter-extension",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "dependencies": {
-    "json-formatter-js": "^2.3.4"
+    "json-formatter-js": "^2.3.4",
+    "webextension-polyfill": "^0.10.0"
   }
 } 

@@ -1,16 +1,25 @@
 function isJsonString(str) {
-  try {
-      const parsed = JSON.parse(str);
-      return typeof parsed === 'object' && parsed !== null;
-  } catch (e) {
-      return false;
-  }
+    try {
+        const parsed = JSON.parse(str);
+        return typeof parsed === 'object' && parsed !== null;
+    } catch (e) {
+        return false;
+    }
+}
+
+function createJsonFormatter(jsonData, level) {
+    const formatterOptions = {
+        theme: extensionSettings.theme || 'dark'
+    };
+
+    const openLevel = level || 2;
+    return new JSONFormatter(jsonData, openLevel, formatterOptions);
 }
 
 function createControlButtons(jsonData, formatter) {
     const controlContainer = document.createElement('div');
     controlContainer.className = 'json-control-buttons';
-    let currentLevel = 2;
+    let currentLevel = extensionSettings.defaultOpenLevel || 2;
     let currentFormatter = formatter;
 
     // Copy button
@@ -22,7 +31,7 @@ function createControlButtons(jsonData, formatter) {
         </svg>
     `;
     copyBtn.className = 'json-control-btn copy';
-    copyBtn.title = "Copy JSON";
+    copyBtn.title = 'Copy JSON';
     copyBtn.onclick = () => {
         navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2));
     };
@@ -36,7 +45,7 @@ function createControlButtons(jsonData, formatter) {
             </svg>
         `;
         btn.className = 'json-control-btn';
-        btn.title = "Decrease Level";
+        btn.title = 'Decrease Level';
         btn.onclick = () => {
             if (currentLevel > 1) {
                 currentLevel--;
@@ -55,7 +64,7 @@ function createControlButtons(jsonData, formatter) {
             </svg>
         `;
         btn.className = 'json-control-btn';
-        btn.title = "Increase Level";
+        btn.title = 'Increase Level';
         btn.onclick = () => {
             currentLevel++;
             currentFormatter.openAtDepth(currentLevel);
@@ -71,16 +80,16 @@ function createControlButtons(jsonData, formatter) {
         </svg>
     `;
     fullscreenBtn.className = 'json-control-btn fullscreen';
-    fullscreenBtn.title = "Fullscreen";
+    fullscreenBtn.title = 'Fullscreen';
     fullscreenBtn.onclick = () => {
         const modal = document.createElement('div');
         modal.className = 'json-modal';
         
         const modalContent = document.createElement('div');
-        modalContent.className = 'json-modal-content';
+        modalContent.className = `json-modal-content theme-${extensionSettings.theme}`;
         
         const modalControls = document.createElement('div');
-        modalControls.className = 'json-control-buttons modal-controls';
+        modalControls.className = `json-control-buttons modal-controls theme-${extensionSettings.theme}`;
         
         const closeBtn = document.createElement('button');
         closeBtn.innerHTML = '×';
@@ -91,12 +100,7 @@ function createControlButtons(jsonData, formatter) {
             currentFormatter.openAtDepth(currentLevel);
         };
 
-        const modalFormatter = new JSONFormatter(jsonData, currentLevel, {
-            hoverPreviewEnabled: true,
-            theme: 'dark',
-            animateOpen: true,
-            animateClose: true
-        });
+        const modalFormatter = createJsonFormatter(jsonData, currentLevel);
         
         currentFormatter = modalFormatter;
         
@@ -141,32 +145,19 @@ function createPrettyButton(textNode) {
             const formattedContainer = document.createElement('div');
             formattedContainer.className = 'json-formatter';
             
-            chrome.storage.sync.get({
-                defaultOpenLevel: 2,
-                theme: 'dark',
-                hoverPreview: true,
-                animateOpen: true
-            }, function(settings) {
-                const formatter = new window.JSONFormatter(jsonData, settings.defaultOpenLevel, {
-                    hoverPreviewEnabled: settings.hoverPreview,
-                    hoverPreviewArrayCount: 100,
-                    hoverPreviewFieldCount: 5,
-                    theme: settings.theme,
-                    animateOpen: settings.animateOpen,
-                    animateClose: settings.animateOpen
-                });
+            
+            const formatter = createJsonFormatter(jsonData, extensionSettings.defaultOpenLevel);
 
-                const formattedElement = formatter.render();
-                if (settings.theme === 'dark') {
-                    formattedElement.style.backgroundColor = '#1e1e1e';
-                }
-                const controlButtons = createControlButtons(jsonData, formatter);
-                formattedContainer.appendChild(controlButtons);
-                formattedContainer.appendChild(formattedElement);
-                
-                textNode.parentNode.replaceChild(formattedContainer, textNode);
-                button.remove();
-            });
+            const formattedElement = formatter.render();
+            if (extensionSettings.theme === 'dark') {
+                // formattedElement.style.backgroundColor = '#1e1e1e';
+            }
+            const controlButtons = createControlButtons(jsonData, formatter);
+            formattedContainer.appendChild(controlButtons);
+            formattedContainer.appendChild(formattedElement);
+            
+            textNode.parentNode.replaceChild(formattedContainer, textNode);
+            button.remove();
             
         } catch (e) {
             console.error('JSON parse error:', e);
@@ -176,54 +167,123 @@ function createPrettyButton(textNode) {
     return button;
 }
 
-function findAndProcessJsonContent() {
-  const walker = document.createTreeWalker(
-      document.body,
-      NodeFilter.SHOW_TEXT,
-      {
-          acceptNode: function(node) {
-              return isJsonString(node.textContent.trim()) 
-                  ? NodeFilter.FILTER_ACCEPT 
-                  : NodeFilter.FILTER_REJECT;
-          }
-      }
-  );
+// Global settings object to store extension settings
+let extensionSettings = {
+    autoFormat: false,
+    defaultOpenLevel: 2,
+    theme: 'dark',
+    hoverPreview: true,
+    allowedUrls: [],
+    formatAllSites: false
+};
 
-  let node;
-  while (node = walker.nextNode()) {
-      if (!node.parentElement.querySelector('.pretty-json-btn')) {
-          const button = createPrettyButton(node);
-          node.parentElement.appendChild(button);
-      }
-  }
+// Load settings once at initialization
+function loadSettings() {
+    return browser.storage.sync.get({
+        autoFormat: false,
+        defaultOpenLevel: 2,
+        theme: 'dark',
+        hoverPreview: true,
+        allowedUrls: [],
+        formatAllSites: false
+    }).then(settings => {
+        extensionSettings = settings;
+    });
+}
+
+function handleJsonContent(node) {
+    if (!node.parentElement || node.parentElement.querySelector('.json-formatter')) {
+        return;
+    }
+
+    const autoFormat = extensionSettings.autoFormat;
+
+    try {
+        if (autoFormat) {
+            const jsonData = JSON.parse(node.textContent.trim());
+            const formatter = createJsonFormatter(jsonData, extensionSettings.defaultOpenLevel);
+            const formattedElement = formatter.render();
+            
+            const controls = createControlButtons(jsonData, formatter);
+            
+            const container = document.createElement('div');
+            container.className = 'json-formatter';
+            container.appendChild(controls);
+            container.appendChild(formattedElement);
+
+            node.parentElement.replaceChild(container, node);
+        } else {
+            if (!node.parentElement.querySelector('.pretty-json-btn')) {
+                const button = createPrettyButton(node);
+                node.parentElement.appendChild(button);
+            }
+        }
+    } catch (error) {
+        console.error('JSON işleme hatası:', error);
+    }
+}
+
+function findAndProcessJsonContent() {
+    const walker = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_TEXT,
+        {
+            acceptNode: function(node) {
+                const parentHasFormatter = node.parentElement?.querySelector('.json-formatter');
+                if (parentHasFormatter) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+                
+                return isJsonString(node.textContent.trim())
+                    ? NodeFilter.FILTER_ACCEPT
+                    : NodeFilter.FILTER_REJECT;
+            }
+        }
+    );
+
+    let node;
+    const nodesToProcess = [];
+    while ((node = walker.nextNode())) {
+        nodesToProcess.push(node);
+    }
+
+    nodesToProcess.forEach(node => {
+        handleJsonContent(node);
+    });
 }
 
 function checkIfUrlAllowed(callback) {
-  const currentHost = window.location.hostname;
-  chrome.storage.sync.get(['allowedUrls'], function(result) {
-    const allowedUrls = result.allowedUrls || [];
-    const isAllowed = allowedUrls.some(url => currentHost.includes(url));
+    const currentHost = window.location.hostname;
+
+    const allowedUrls = extensionSettings.allowedUrls || [];
+    const formatAllSites = extensionSettings.formatAllSites || false;
+        
+    // Allow if either formatAllSites is true or the URL is in allowedUrls
+    const isAllowed = formatAllSites || allowedUrls.some(url => currentHost.includes(url));
     callback(isAllowed);
-  });
 }
 
-function initializeExtension() {
-  console.log('initializeExtension');
-  checkIfUrlAllowed((isAllowed) => {
-    if (isAllowed) {
-      findAndProcessJsonContent();
-      
-      const observer = new MutationObserver(findAndProcessJsonContent);
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
+async function initializeExtension() {
+    try {
+        await loadSettings(); // Load settings once
+        checkIfUrlAllowed((isAllowed) => {
+            if (isAllowed) {
+                findAndProcessJsonContent();
+                
+                const observer = new MutationObserver(findAndProcessJsonContent);
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+        });
+    } catch (error) {
+        console.error('Failed to load extension settings:', error);
     }
-  });
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeExtension);
+    document.addEventListener('DOMContentLoaded', initializeExtension);
 } else {
-  initializeExtension();
+    initializeExtension();
 }

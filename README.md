@@ -1,6 +1,20 @@
-# JSON Formatter Chrome Extension
+# JSON Formatter Browser Extension
 
-A Chrome extension that automatically formats JSON data on web pages, making it easier to read and navigate through JSON structures.
+A browser extension that automatically formats JSON data on web pages, making it easier to read and navigate through JSON structures. Works on both Chrome and Firefox.
+
+## Installation
+
+### Chrome
+1. Open Chrome and go to `chrome://extensions/`
+2. Enable "Developer mode"
+3. Click "Load unpacked"
+4. Select the extension folder
+
+### Firefox
+1. Open Firefox and go to `about:debugging`
+2. Click "This Firefox"
+3. Click "Load Temporary Add-on"
+4. Select the manifest.json file in the extension folder
 
 ## Features
 
@@ -10,24 +24,6 @@ A Chrome extension that automatically formats JSON data on web pages, making it 
 - ⚙️ Customizable settings
 - 🌙 Dark/Light theme support
 - 👀 Hover preview option
-
-## Installation
-
-### Prerequisites
-- Node.js and npm installed on your computer
-
-### Installation Steps
-1. Clone/Download this repository
-2. Open terminal in the extension folder
-3. Install dependencies:
-```bash
-npm install
-```
-4. Load the extension in Chrome:
-   - Open Chrome and go to `chrome://extensions/`
-   - Enable "Developer mode" in the top right corner
-   - Click "Load unpacked"
-   - Select the extension folder
 
 ## Usage
 
