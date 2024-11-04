@@ -4,13 +4,21 @@ A browser extension that automatically formats JSON data on web pages, making it
 
 ## Installation
 
-### Chrome
+### Chrome Web Store
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/jldgppgfkackpljkijfjecejobkmicik.svg)](https://chromewebstore.google.com/detail/json-formatter-extension/jldgppgfkackpljkijfjecejobkmicik)
+
+### Firefox Add-ons
+[![Firefox Add-ons](https://img.shields.io/amo/v/json-formatter-extension.svg)](https://addons.mozilla.org/en-US/firefox/addon/json-formatter-extension/)
+
+### Manual Installation
+
+#### Chrome
 1. Open Chrome and go to `chrome://extensions/`
 2. Enable "Developer mode"
 3. Click "Load unpacked"
 4. Select the extension folder
 
-### Firefox
+#### Firefox
 1. Open Firefox and go to `about:debugging`
 2. Click "This Firefox"
 3. Click "Load Temporary Add-on"
@@ -23,7 +31,7 @@ A browser extension that automatically formats JSON data on web pages, making it
 - 🔍 Expand/Collapse JSON levels
 - ⚙️ Customizable settings
 - 🌙 Dark/Light theme support
-- 👀 Hover preview option
+- 🖥️ Fullscreen mode
 
 ## Usage
 
@@ -32,14 +40,15 @@ A browser extension that automatically formats JSON data on web pages, making it
   - Copy formatted JSON
   - Expand all levels at once
   - Collapse all levels at once
+  - View in fullscreen mode
 - Access settings by clicking the extension icon in toolbar
 
 ## Settings
 
-- Default open level: Choose how many levels to expand by default
 - Theme: Select between light and dark themes
-- Hover Preview: Enable/disable JSON preview on hover
-- Allowed URLs: Manage where the formatter should run
+- Auto-format: Enable/disable automatic JSON formatting
+- Run on all websites: Enable/disable extension globally
+- Show control buttons: Toggle visibility of control buttons
 
 ## License
 
