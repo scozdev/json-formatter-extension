@@ -30,8 +30,8 @@ A browser extension that automatically formats JSON data on web pages, making it
 - The extension automatically detects and formats JSON content on web pages
 - Use the control buttons to:
   - Copy formatted JSON
-  - Expand all levels
-  - Collapse all levels
+  - Expand all levels at once
+  - Collapse all levels at once
 - Access settings by clicking the extension icon in toolbar
 
 ## Settings

@@ -19,7 +19,6 @@ function createJsonFormatter(jsonData, level) {
 function createControlButtons(jsonData, formatter) {
     const controlContainer = document.createElement('div');
     controlContainer.className = 'json-control-buttons';
-    let currentLevel = extensionSettings.defaultOpenLevel || 2;
     let currentFormatter = formatter;
 
     // Copy button
@@ -36,38 +35,36 @@ function createControlButtons(jsonData, formatter) {
         navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2));
     };
 
-    // Decrease Level button
-    const createDecreaseBtn = () => {
+    // Collapse All button
+    const createCollapseBtn = () => {
         const btn = document.createElement('button');
         btn.innerHTML = `
             <svg viewBox="0 0 24 24" width="18" height="18">
-                <path d="M17 13l-5 5-5-5M17 7l-5 5-5-5"/>
+                <path d="M17 8l-5 5-5-5" stroke-width="2"/>
+                <path d="M17 13l-5 5-5-5" stroke-width="2"/>
             </svg>
         `;
         btn.className = 'json-control-btn';
-        btn.title = 'Decrease Level';
+        btn.title = 'Collapse All';
         btn.onclick = () => {
-            if (currentLevel > 1) {
-                currentLevel--;
-                currentFormatter.openAtDepth(currentLevel);
-            }
+            currentFormatter.openAtDepth(1);
         };
         return btn;
     };
 
-    // Increase Level button
-    const createIncreaseBtn = () => {
+    // Expand All button
+    const createExpandBtn = () => {
         const btn = document.createElement('button');
         btn.innerHTML = `
             <svg viewBox="0 0 24 24" width="18" height="18">
-                <path d="M7 11l5-5 5 5M7 17l5-5 5 5"/>
+                <path d="M7 16l5-5 5 5" stroke-width="2"/>
+                <path d="M7 11l5-5 5 5" stroke-width="2"/>
             </svg>
         `;
         btn.className = 'json-control-btn';
-        btn.title = 'Increase Level';
+        btn.title = 'Expand All';
         btn.onclick = () => {
-            currentLevel++;
-            currentFormatter.openAtDepth(currentLevel);
+            currentFormatter.openAtDepth(Infinity);
         };
         return btn;
     };
@@ -97,11 +94,9 @@ function createControlButtons(jsonData, formatter) {
         closeBtn.onclick = () => {
             modal.remove();
             currentFormatter = formatter;
-            currentFormatter.openAtDepth(currentLevel);
         };
 
-        const modalFormatter = createJsonFormatter(jsonData, currentLevel);
-        
+        const modalFormatter = createJsonFormatter(jsonData);
         currentFormatter = modalFormatter;
         
         const modalCopyBtn = copyBtn.cloneNode(true);
@@ -110,8 +105,8 @@ function createControlButtons(jsonData, formatter) {
         };
 
         modalControls.appendChild(modalCopyBtn);
-        modalControls.appendChild(createDecreaseBtn());
-        modalControls.appendChild(createIncreaseBtn());
+        modalControls.appendChild(createCollapseBtn());
+        modalControls.appendChild(createExpandBtn());
         
         const jsonContainer = modalFormatter.render();
         modalContent.appendChild(closeBtn);
@@ -123,8 +118,8 @@ function createControlButtons(jsonData, formatter) {
 
     controlContainer.appendChild(copyBtn);
     controlContainer.appendChild(fullscreenBtn);
-    controlContainer.appendChild(createDecreaseBtn());
-    controlContainer.appendChild(createIncreaseBtn());
+    controlContainer.appendChild(createCollapseBtn());
+    controlContainer.appendChild(createExpandBtn());
 
     return controlContainer;
 }
@@ -169,23 +164,19 @@ function createPrettyButton(textNode) {
 
 // Global settings object to store extension settings
 let extensionSettings = {
-    autoFormat: false,
-    defaultOpenLevel: 2,
+    autoFormat: true,
     theme: 'dark',
-    hoverPreview: true,
-    allowedUrls: [],
-    formatAllSites: false
+    formatAllSites: true,
+    showButtons: false
 };
 
 // Load settings once at initialization
 function loadSettings() {
     return browser.storage.sync.get({
-        autoFormat: false,
-        defaultOpenLevel: 2,
+        autoFormat: true,
         theme: 'dark',
-        hoverPreview: true,
-        allowedUrls: [],
-        formatAllSites: false
+        formatAllSites: true,
+        showButtons: false
     }).then(settings => {
         extensionSettings = settings;
     });
@@ -204,13 +195,15 @@ function handleJsonContent(node) {
             const formatter = createJsonFormatter(jsonData, extensionSettings.defaultOpenLevel);
             const formattedElement = formatter.render();
             
-            const controls = createControlButtons(jsonData, formatter);
-            
             const container = document.createElement('div');
             container.className = 'json-formatter';
-            container.appendChild(controls);
+            
+            if (extensionSettings.showButtons) {
+                const controls = createControlButtons(jsonData, formatter);
+                container.appendChild(controls);
+            }
+            
             container.appendChild(formattedElement);
-
             node.parentElement.replaceChild(container, node);
         } else {
             if (!node.parentElement.querySelector('.pretty-json-btn')) {

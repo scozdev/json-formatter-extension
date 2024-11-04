@@ -31,7 +31,7 @@
 
 .json-control-btn svg {
   stroke: currentColor;
-  stroke-width: 2;
+  /* stroke-width: 2; */
   fill: none;
 }
 
@@ -147,6 +147,10 @@
 
 .json-formatter-dark.json-formatter-row {
   background-color: #1e1e1e;
+}
+
+.json-formatter-light.json-formatter-row {
+  background-color: #ffffff;
 }
 
 /* Light tema için */
